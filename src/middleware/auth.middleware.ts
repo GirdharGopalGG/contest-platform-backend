@@ -8,7 +8,7 @@ export const authMiddleware = (req:Request,res:Response, next:NextFunction)=>{
     try {
             
     const authHeader = req.headers.authorization
-    if(!authHeader){
+    if(!authHeader || !authHeader.startsWith('Bearer')){
         return res.status(401).json({
             "success": false,
             "data": null,
@@ -24,26 +24,19 @@ export const authMiddleware = (req:Request,res:Response, next:NextFunction)=>{
         })
     }
 
-    const decodedJWT = jwt.verify(token,process.env.JWT_SECRET as string);
-    if(!decodedJWT){
-        return res.status(401).json({
-            "success": false,
-            "data": null,
-            "error": "UNAUTHORIZED"
-        })
-    }
-
-    (req as any).user = decodedJWT
-
-    next()
-    } catch (error) {
-        if(error instanceof JsonWebTokenError){
-            return res.status(401).json({
-            "success": false,
-            "data": null,
-            "error": "UNAUTHORIZED"
-        })
+    jwt.verify(token,process.env.JWT_SECRET as string, (err,decoded)=>{
+        if(err){
+             return res.status(401).json({
+                "success": false,
+                "data": null,
+                "error": "UNAUTHORIZED"
+            })
         }
+        (req as any).user = decoded
+        next()
+    })
+    
+    } catch (error) {
         console.log('Error in auth middleware\n',error)
         res.status(500).json({
             message:'Internal server error'

@@ -9,8 +9,15 @@ const router = express.Router()
 
 router.post('/signup',async(req:Request, res:Response)=>{
     try {
-        const validatedData  = signupSchema.parse(req.body)
-        const {name,email,password,role} = validatedData
+        const validatedData  = signupSchema.safeParse(req.body)
+        if(!validatedData.success){
+            return res.status(400).json({
+                "success": false,
+                "data": null, 
+                "error": "INVALID_REQUEST"
+            })
+        }
+        const {name,email,password,role} = validatedData.data
 
         const userExists = await prisma.user.findFirst({
             where:{
@@ -49,14 +56,7 @@ router.post('/signup',async(req:Request, res:Response)=>{
     })
     
     } catch (error) {
-        if(error instanceof ZodError){
-            console.log(error)
-            return res.status(400).json({
-                "success": false,
-                "data": null, 
-                "error": "INVALID_REQUEST"
-            })
-        }
+        
         console.log("Error in signup route\n",error)
         res.status(500).json({
             message:'Internal server error'
@@ -69,8 +69,15 @@ router.post('/signup',async(req:Request, res:Response)=>{
 router.post('/login',async(req:Request, res:Response)=>{
     
     try {
-        const validatedData = loginSchema.parse(req.body)
-        const {email, password} = validatedData
+        const validatedData = loginSchema.safeParse(req.body)
+        if(!validatedData.success){
+            return res.status(400).json({
+                "success": false,
+                "data": null, 
+                "error": "INVALID_REQUEST"
+            })
+        }
+        const {email, password} = validatedData.data
         
         const user = await prisma.user.findFirst({
             where:{
@@ -108,14 +115,7 @@ router.post('/login',async(req:Request, res:Response)=>{
         
 
     } catch (error) {
-        if(error instanceof ZodError){
-            console.log('Error in login user\n',error)
-            return res.status(400).json({
-                "success": false,
-                "data": null,
-                "error": "INVALID_REQUEST"
-            })
-        }
+        
         console.log('Error in login user\n',error)
         res.status(500).json({
             message:'Internal server error'

@@ -7,104 +7,101 @@ datasource db {
   provider = "postgresql"
 }
 
-enum role{
+enum role {
   creator
   contestee
 }
 
-model User{
-  id Int @id @default(autoincrement())
-  name String
-  email String
-  password String
-  role role @default(contestee)
+model User {
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String
+  password   String
+  role       role     @default(contestee)
   created_at DateTime @default(now())
 
-  contests Contest[]
-  mcq_submission mcq_submission?
-  dsa_submission dsa_submission?
+  contests      Contest[]
+  mcqSubmission mcq_submission?
+  dsaSubmission dsa_submission?
 }
 
-model Contest{
-  id Int @id @default(autoincrement())
-  title String
+model Contest {
+  id          Int      @id @default(autoincrement())
+  title       String
   description String
-  creator_id  Int
-  creator User @relation(fields: [creator_id], references: [id])
-  start_time DateTime
-  end_time DateTime
-  created_at DateTime @default(now())
+  creatorId   Int      @map("creator_id")
+  creator     User     @relation(fields: [creatorId], references: [id])
+  startTime   DateTime @map("start_time")
+  endTime     DateTime @map("end_time")
+  created_at  DateTime @default(now())
 
-  mcq_questions mcq_question[]
-  dsa_problems dsa_problem[]
-
+  mcqs        mcq_question[]
+  dsaProblems dsa_problem[]
 }
 
-model mcq_question{
-  id Int @id @default(autoincrement())
-  contest_id  Int
-  contests Contest @relation(fields: [contest_id], references: [id])
-  question_text String
-  options Json
-  correct_option_index Int
-  points Int @default(1)
-  created_at DateTime @default(now())
+model mcq_question {
+  id                 Int      @id @default(autoincrement())
+  contestId          Int
+  contests           Contest  @relation(fields: [contestId], references: [id])
+  questionText       String
+  options            Json
+  correctOptionIndex Int
+  points             Int      @default(1)
+  created_at         DateTime @default(now())
 
-  mcq_submission mcq_submission?
+  mcqSubmission mcq_submission?
 }
 
-model dsa_problem{
-  id Int @id @default(autoincrement())
-  contest_id Int 
-  contests Contest @relation(fields: [contest_id], references: [id])
-  title String
+model dsa_problem {
+  id          Int      @id @default(autoincrement())
+  contestId   Int
+  contests    Contest  @relation(fields: [contestId], references: [id])
+  title       String
   description String
-  tags Json
-  points Int @default(100)
-  time_limit Int @default(2000)
-  memory_limit Int @default(256)
-  created_at DateTime @default(now())
+  tags        Json
+  points      Int      @default(100)
+  timeLimit   Int      @default(2000)
+  memoryLimit Int      @default(256)
+  created_at  DateTime @default(now())
 
-  test_cases test_case[]
-  dsa_submission dsa_submission?
+  testCases     test_case[]
+  dsaSubmission dsa_submission?
 }
 
 model test_case {
-  id Int @id @default(autoincrement())
-  problem_id Int
-  dsa_problems dsa_problem @relation(fields: [problem_id], references: [id])
-  input Json
-  expected_output Json
-  is_hidden Boolean @default(false)
-  created_at DateTime @default(now())
+  id             Int         @id @default(autoincrement())
+  problemId      Int         @map("problem_id")
+  dsaProblem     dsa_problem @relation(fields: [problemId], references: [id])
+  input          Json
+  expectedOutput Json
+  isHidden       Boolean     @default(false)
+  created_at     DateTime    @default(now())
 }
 
 model mcq_submission {
-  id Int @id @default(autoincrement())
-  user_id Int @unique
-  user User @relation(fields: [user_id],references: [id])
-  question_id Int @unique
-  mcq_question mcq_question @relation(fields: [question_id],references: [id])
-  selected_option_index Int
-  is_correct Boolean 
-  points_earned Int @default(0)
-  submitted_at DateTime @default(now())
-
+  id                  Int          @id @default(autoincrement())
+  userId              Int          @unique @map("user_id")
+  user                User         @relation(fields: [userId], references: [id])
+  questionId          Int          @unique @map("question_id")
+  mcqQuestion         mcq_question @relation(fields: [questionId], references: [id])
+  selectedOptionIndex Int
+  isCorrect           Boolean
+  pointsEarned        Int          @default(0)
+  submitted_at        DateTime     @default(now())
 }
 
-
 model dsa_submission {
-  id Int @id @default(autoincrement())
-  user_id Int @unique
-  user User @relation(fields: [user_id], references: [id])
-  problem_id Int @unique
-  dsa_problem dsa_problem @relation(fields: [problem_id], references: [id])
-  code String
-  language String @db.VarChar(50)
-  status String @db.VarChar(50)
-  points_earned Int @default(0)
-  test_cases_passed Int @default(0)
-  total_test_cases Int @default(0)
-  execution_time Int
-  submitted_at DateTime @default(now())
+  id              Int         @id @default(autoincrement())
+  userId          Int         @unique @map("user_id")
+  user            User        @relation(fields: [userId], references: [id])
+  problemId       Int         @unique @map("problem_id")
+  dsaProblem      dsa_problem @relation(fields: [problemId], references: [id])
+  code            String
+  language        String      @db.VarChar(50)
+  status          String      @db.VarChar(50)
+  pointsEarned    Int         @default(0)
+  testCasesPassed Int         @default(0)
+  totalTestCases  Int         @default(0)
+  executionTime   Int
+  submitted_at    DateTime    @default(now())
 }
