@@ -3,10 +3,10 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "target": "ES2023",
     "strict": true,
     "esModuleInterop": true
   },
-  "exclude": ["prisma.config.ts","src/generated"]
+  "exclude": ["prisma.config.ts"]
 }
