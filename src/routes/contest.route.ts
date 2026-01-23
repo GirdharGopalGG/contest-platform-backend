@@ -208,6 +208,21 @@ router.post('/:contestId/mcq/:questionId/submit',async(req:Request,res:Response)
             "error": "FORBIDDEN"
         })
     }
+    if(!req.body){
+        return res.status(400).json({
+            "success": false,
+            "data": null,
+            "error": "INVALID_REQUEST"
+        })
+    }
+    const validatedData = selectedOptionSchema.safeParse(req.body)
+    if(!validatedData.success){
+        return res.status(400).json({
+            "success": false,
+            "data": null,
+            "error": "INVALID_REQUEST"
+        })
+    }
     const isSubmitted = await prisma.mcq_submission.findFirst({
         where:{
             userId,
@@ -235,21 +250,7 @@ router.post('/:contestId/mcq/:questionId/submit',async(req:Request,res:Response)
         })
     }
 
-    if(!req.body){
-        return res.status(400).json({
-            "success": false,
-            "data": null,
-            "error": "INVALID_REQUEST"
-        })
-    }
-    const validatedData = selectedOptionSchema.safeParse(req.body)
-    if(!validatedData.success){
-        return res.status(400).json({
-            "success": false,
-            "data": null,
-            "error": "INVALID_REQUEST"
-        })
-    }
+    
     const {selectedOptionIndex} = validatedData.data
 
     const isCorrect = selectedOptionIndex===questionExists.correctOptionIndex

@@ -20,9 +20,11 @@ model User {
   role       role     @default(contestee)
   created_at DateTime @default(now())
 
-  contests      Contest[]
-  mcqSubmission mcq_submission?
-  dsaSubmission dsa_submission?
+  contests         Contest[]
+  mcqSubmission    mcq_submission? @relation(fields: [mcq_submissionId], references: [id])
+  dsaSubmission    dsa_submission? @relation(fields: [dsa_submissionId], references: [id])
+  mcq_submissionId Int?
+  dsa_submissionId Int?
 }
 
 model Contest {
@@ -49,7 +51,8 @@ model mcq_question {
   points             Int      @default(1)
   created_at         DateTime @default(now())
 
-  mcqSubmission mcq_submission?
+  mcqSubmission    mcq_submission? @relation(fields: [mcq_submissionId], references: [id])
+  mcq_submissionId Int?
 }
 
 model dsa_problem {
@@ -64,8 +67,9 @@ model dsa_problem {
   memoryLimit Int      @default(256)
   created_at  DateTime @default(now())
 
-  testCases     test_case[]
-  dsaSubmission dsa_submission?
+  testCases        test_case[]
+  dsaSubmission    dsa_submission? @relation(fields: [dsa_submissionId], references: [id])
+  dsa_submissionId Int?
 }
 
 model test_case {
@@ -79,29 +83,32 @@ model test_case {
 }
 
 model mcq_submission {
-  id                  Int          @id @default(autoincrement())
-  userId              Int          @unique @map("user_id")
-  user                User         @relation(fields: [userId], references: [id])
-  questionId          Int          @unique @map("question_id")
-  mcqQuestion         mcq_question @relation(fields: [questionId], references: [id])
+  id                  Int      @id @default(autoincrement())
+  userId              Int      @map("user_id")
+  questionId          Int      @map("question_id")
   selectedOptionIndex Int
   isCorrect           Boolean
-  pointsEarned        Int          @default(0)
-  submitted_at        DateTime     @default(now())
+  pointsEarned        Int      @default(0)
+  submitted_at        DateTime @default(now())
+
+  users        User[]
+  mcqQuestions mcq_question[]
+
+  @@unique([userId, questionId])
 }
 
 model dsa_submission {
-  id              Int         @id @default(autoincrement())
-  userId          Int         @unique @map("user_id")
-  user            User        @relation(fields: [userId], references: [id])
-  problemId       Int         @unique @map("problem_id")
-  dsaProblem      dsa_problem @relation(fields: [problemId], references: [id])
+  id              Int           @id @default(autoincrement())
+  userId          Int           @map("user_id")
+  problemId       Int           @map("problem_id")
   code            String
-  language        String      @db.VarChar(50)
-  status          String      @db.VarChar(50)
-  pointsEarned    Int         @default(0)
-  testCasesPassed Int         @default(0)
-  totalTestCases  Int         @default(0)
+  language        String        @db.VarChar(50)
+  status          String        @db.VarChar(50)
+  pointsEarned    Int           @default(0)
+  testCasesPassed Int           @default(0)
+  totalTestCases  Int           @default(0)
   executionTime   Int
-  submitted_at    DateTime    @default(now())
+  submitted_at    DateTime      @default(now())
+  users           User[]
+  dsaProblems     dsa_problem[]
 }
