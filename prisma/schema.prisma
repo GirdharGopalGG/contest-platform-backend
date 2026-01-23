@@ -67,9 +67,7 @@ model dsa_problem {
   memoryLimit Int      @default(256)
   created_at  DateTime @default(now())
 
-  testCases        test_case[]
-  dsaSubmission    dsa_submission? @relation(fields: [dsa_submissionId], references: [id])
-  dsa_submissionId Int?
+  testCases test_case[]
 }
 
 model test_case {
@@ -98,17 +96,16 @@ model mcq_submission {
 }
 
 model dsa_submission {
-  id              Int           @id @default(autoincrement())
-  userId          Int           @map("user_id")
-  problemId       Int           @map("problem_id")
+  id              Int      @id @default(autoincrement())
+  userId          Int      @map("user_id")
+  problemId       Int      @map("problem_id")
   code            String
-  language        String        @db.VarChar(50)
-  status          String        @db.VarChar(50)
-  pointsEarned    Int           @default(0)
-  testCasesPassed Int           @default(0)
-  totalTestCases  Int           @default(0)
+  language        String   @db.VarChar(50)
+  status          String   @db.VarChar(50)
+  pointsEarned    Int      @default(0)
+  testCasesPassed Int      @default(0)
+  totalTestCases  Int      @default(0)
   executionTime   Int
-  submitted_at    DateTime      @default(now())
+  submitted_at    DateTime @default(now())
   users           User[]
-  dsaProblems     dsa_problem[]
 }

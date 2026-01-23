@@ -4,6 +4,7 @@ import { createContestSchema } from '../schema/contestSchema.js'
 import { ZodError } from 'zod'
 import { errorResponse, successResponse } from '../lib/response.js'
 import { mcqSchema, selectedOptionSchema } from '../schema/mcqSchema.js'
+import { dsaSchema } from '../schema/dsaSchema.js'
 const router = express.Router()
 
 router.post('/',async(req:Request, res:Response)=>{
@@ -284,5 +285,95 @@ router.post('/:contestId/mcq/:questionId/submit',async(req:Request,res:Response)
     }
 
 })
+
+
+router.post('/:contestId/dsa',async(req:Request,res:Response)=>{
+    try {
+        const contestId = Number(req.params.contestId)
+        if(isNaN(contestId)){
+            return res.status(404).json({
+                "success": false,
+                "data": null,
+                "error": "CONTEST_NOT_FOUND"
+            })
+        }
+        const contest = await prisma.contest.findFirst({
+            where:{
+                id:contestId
+            }
+        })
+        if(!contest){
+            return res.status(404).json({
+                "success": false,
+                "data": null,
+                "error": "CONTEST_NOT_FOUND"
+            })
+        }
+        
+        const userId = (req as any).user.id
+        const user = await prisma.user.findFirst({
+            where:{
+                id:userId
+            }
+        })
+        if(user?.role != 'creator'){
+            return res.status(403).json({
+                "success": false,
+                "data": null,
+                "error": "FORBIDDEN"
+            })
+        }
+
+        const validatedData = dsaSchema.safeParse(req.body)
+        if(!validatedData.success){
+            return res.status(400).json({
+                "success": false,
+                "data": null,
+                "error": "INVALID_REQUEST"
+            })
+        }
+
+        const {description,memoryLimit,points,tags,testCases,timeLimit,title,} = validatedData.data
+
+
+        const dsaQuestion = await prisma.dsa_problem.create({
+            data:{
+                description,
+                tags,
+                title,
+                contestId,
+                memoryLimit,
+                points,
+                testCases:{
+                    create:testCases.map((tc)=>({
+                        input:tc.input,
+                        expectedOutput:tc.expectedOutput,
+                        isHidden:tc.isHidden
+
+                    }))
+                },
+                timeLimit
+
+            }
+        })
+        
+        res.status(201).json({
+            "success": true,
+            "data": {
+                "id": dsaQuestion.id,
+                "contestId": contestId
+            },
+            "error": null
+        })
+        
+    } catch (error) {
+        console.error('Error in creating dsa question\n',error)
+        res.status(500).json({
+            messsage:'Internal server error'
+        })
+    }
+})
+
+
 
 export default router
